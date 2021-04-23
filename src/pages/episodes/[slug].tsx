@@ -65,8 +65,30 @@ export default function Episode({ episode }: EpisodeProps) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
+    // get the latest episodes, these will be the most accessed episodes
+    // the others will be generated as people access them
+    const { data } = await api.get('episodes', {
+        params: {
+            _limit: 2,
+            _sort: 'published_at',
+            _order: 'desc'
+        }
+    })
+    const paths = data.map(episode => {
+        return {
+            params: {
+                slug: episode.id
+            }
+        }
+    })
+    // paths: [] means next will not generate any episodes statically
+    // paths: [object] means next will generate specified episode paths
+
+    // fallback: false means if the episode was not generated in the paths array (when filled), server will default to 404
+    // fallback: true means if the episode is not in paths array, it will be requested and generated client-side
+    // fallback: blocking means that the episodes will be loaded server-side, before page loads client-side
     return {
-        paths: [],
+        paths,
         fallback: 'blocking'
     }
 }
